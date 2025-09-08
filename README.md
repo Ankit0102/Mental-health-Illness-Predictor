@@ -9,181 +9,109 @@ A professional, open-source solution for workplace mental health screening power
 **Title:** Mental Health Illness Predictor
 
 **Description:**  
-A web-based application that predicts whether an individual may require mental health treatment, based on personal and workplace factors. The prediction is made using a trained machine learning model and a simple, user-friendly web interface.
-
-**Industry Context & Use Cases:**  
-This project is designed for the **HR, healthcare, and tech industries** where mental health screening and awareness are critical.  
-**Use cases include:**  
-- HR departments assessing employee well-being.
-- Occupational health professionals conducting anonymous screenings.
-- Tech companies enabling easy self-assessment for remote workers and teams.
-
-**Key Features & Benefits:**
-- **Easy-to-use interface:** No technical expertise required.
-- **Instant prediction:** Immediate feedback on mental health needs.
-- **Customizable input:** Gathers key workplace and demographic factors.
-- **Privacy-first:** All data is processed locally; no cloud or external API required.
-- **Scalable:** Can be deployed for teams, companies, or as a public service.
-
-**Target Audience:**
-- Developers and data scientists (for extension/customization)
-- HR and wellness professionals
-- Businesses with a focus on employee mental health
-- End-users seeking privacy-friendly self-assessment
+A web-based application that predicts whether an individual may require mental health treatment, based on personal and workplace factors. The prediction is made using a trained machine learning model and a simple, user-friendly web interface. The model is trained using `train_model.py` and uses the following features: Age, Gender, Country, Self Employed, Family History. The target variable is `treatment` (Yes/No).
 
 ---
 
 ## Technical Documentation
 
-### Installation
+### Installation & Setup
 
 **Prerequisites:**
-- Python 3.7+
+- Python 3.10+
 - `pip` (Python package manager)
-- A trained ML model saved as `model.pkl` in the project root
 
 **Setup:**
-```bash
+```powershell
 git clone https://github.com/Ankit0102/Mental-health-Illness-Predictor.git
 cd Mental-health-Illness-Predictor
-pip install flask numpy scikit-learn
+python -m venv venv
+.\venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
-**Note:**  
-You must provide your own `model.pkl` that matches the input format.
+**Training the Model:**
+```powershell
+python train_model.py
+```
 
-### Usage Example
-
-**Start the Application:**
-```bash
+**Running the App:**
+```powershell
 python app.py
 ```
 Open your browser to [http://127.0.0.1:5000/](http://127.0.0.1:5000/)
 
 **Sample Interaction:**
-- Fill in fields like Age, Gender, self_employed, family_history, work_interfere, etc.
+- Fill in fields: Age, Gender, Country, Self Employed, Family History.
 - Click **Predict** to receive instant feedback.
 
 **Backend Code Example:**
 ```python
 @application.route("/prediction", methods=["POST"])
 def prediction():
-    float_features = [float(x) for x in request.form.values()]
-    final_features = [np.array(float_features)]
+    # Get form data in the correct order
+    age = float(request.form['Age'])
+    gender = request.form['Gender']
+    country = request.form['Country']
+    self_employed = request.form['self_employed']
+    family_history = request.form['family_history']
+
+    # Encode categorical features (same as training)
+    from sklearn.preprocessing import LabelEncoder
+    le_gender = LabelEncoder().fit(['Male', 'Female', 'Other', 'Unknown'])
+    le_country = LabelEncoder().fit([country])
+    le_self_employed = LabelEncoder().fit(['Yes', 'No', 'Unknown'])
+    le_family_history = LabelEncoder().fit(['Yes', 'No', 'Unknown'])
+
+    gender_encoded = le_gender.transform([gender])[0] if gender in le_gender.classes_ else le_gender.transform(['Unknown'])[0]
+    country_encoded = le_country.transform([country])[0]
+    self_employed_encoded = le_self_employed.transform([self_employed])[0] if self_employed in le_self_employed.classes_ else le_self_employed.transform(['Unknown'])[0]
+    family_history_encoded = le_family_history.transform([family_history])[0] if family_history in le_family_history.classes_ else le_family_history.transform(['Unknown'])[0]
+
+    final_features = np.array([[age, gender_encoded, country_encoded, self_employed_encoded, family_history_encoded]])
+
+    # Make prediction
     prediction = model.predict(final_features)
+
+    # Prepare the prediction message
     if prediction[0] == 1:
         prediction_text = "This person requires mental health treatment"
     else:
         prediction_text = "This person doesn't require mental health treatment"
+
     return render_template('pred.html', prediction_text=prediction_text)
 ```
 
 ### API Documentation
-
 - **POST /prediction:** Receives form data, returns prediction text.
 - No external API calls; all processing is local.
 
 ### Configuration Options
-
-- The model must be trained and saved as `model.pkl` with scikit-learn.
+- The model is trained and saved as `model.pkl` using `train_model.py`.
 - Input fields in `pred.html` match model features. Edit `pred.html` to add/remove fields.
 
 ### Dependencies
-
-- Python 3.7+
+- Python 3.10+
 - Flask
 - NumPy
 - scikit-learn
+- pandas
 - Pickle (for model serialization)
-
----
-
-## Professional Elements
-
-**Badges:**  
-*(Add badges for build status, license, version as needed. Example:)*  
-![Python](https://img.shields.io/badge/Python-3.7%2B-blue)
-![Flask](https://img.shields.io/badge/Flask-Web%20App-green)
-
-**License:**  
-No explicit license is found. Please add a license (MIT recommended) for open-source compliance.
-
-**Screenshots:**  
-*(No screenshots found in repo, add UI screenshots for best results.)*
-
-**Demo:**  
-To run a local demo, follow usage instructions above.
-
-**Architecture Overview:**  
-- **Frontend:** HTML/CSS form (`pred.html`, `styles.css`)
-- **Backend:** Flask app (`app.py`)
-- **ML Model:** `model.pkl` loaded into memory
-- **Flow:**  
-    1. User submits form  
-    2. Flask backend parses input  
-    3. Model returns prediction  
-    4. Result displayed on UI
-
-**Performance Metrics:**  
-*(No benchmarks found; add model accuracy, inference time, etc. if available.)*
-
----
-
-## Community & Support
-
-**Contributing:**  
-Fork the repository, create a branch, and submit a pull request.  
-*(No CONTRIBUTING.md found; add for more details.)*
-
-
-**Changelog / Roadmap:**  
-*(No changelog detected; consider adding one for version tracking.)*
-
----
-
-## Industry-Specific Considerations
-
-**Compliance:**  
-No direct references to GDPR, HIPAA, or SOC2.  
-- **Note:** For production use, ensure secure handling of user data and compliance with relevant regulations.
-
-**Security:**  
-- All predictions run locally.
-- No data is sent externally.
-- No authentication implemented; add for production.
-
-**Scalability:**  
-- Stateless Flask app; can be containerized and deployed on cloud or on-premise servers.
-- For large organizations, run behind a secure proxy/load balancer.
-
-**Integration:**  
-- Can be integrated with HR tools via API endpoints.
-- Extendable for additional data sources or reporting.
 
 ---
 
 ## File Structure
 
 ```
-├── app.py              # Flask backend logic
-├── pred.html           # Main HTML form
-├── styles.css          # UI styling
-├── model.pkl           # ML model (must be provided)
+├── app.py                # Flask backend logic
+├── train_model.py        # Model training and saving
+├── requirements.txt      # Python dependencies
+├── survey.csv            # Data file
+├── model.pkl             # ML model (auto-generated)
+├── styles.css            # UI styling
+└── templates/
+    └── pred.html         # Main HTML form (must be in templates folder)
 ```
-
----
-
-## Additional Resources
-
-- [Flask Documentation](https://flask.palletsprojects.com/)
-- [scikit-learn Documentation](https://scikit-learn.org/)
-- [Python Pickle](https://docs.python.org/3/library/pickle.html)
-
----
-
-## Maintainer
-
-Developed by [Ankit0102](https://github.com/Ankit0102).
 
 ---
 
