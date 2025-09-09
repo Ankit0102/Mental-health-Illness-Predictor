@@ -115,4 +115,11 @@ def prediction():
 
 ---
 
+## Google Colab Notebook
+
+You can also run or explore the project in Google Colab:
+[Open in Colab](https://colab.research.google.com/drive/1q_J0erQ5YSG_jNgRYYk-o3SkIfai2bGB#scrollTo=Gto0RXhVBbuB)
+
+---
+
 *Disclaimer: This tool is for educational and awareness purposes only. Not medical advice. For professional help, consult a qualified mental health provider.*

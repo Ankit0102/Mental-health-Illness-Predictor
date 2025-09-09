@@ -2,6 +2,8 @@ import numpy as np
 from flask import Flask,request,render_template
 import pickle
 
+
+# Used google collab for data processing and data cleaning 
 # Create Flask app
 application = Flask(__name__)
 model = pickle.load(open("model.pkl", "rb"))
